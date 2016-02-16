@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 2.8)
+PROJECT(modelfit)
+SET(CMAKE_BUILD_TYPE "Debug")
+#SET(CMAKE_BUILD_TYPE "Release")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+FIND_PACKAGE(OpenCV REQUIRED)
+	
+SET(all_srcs line.cpp)
+ADD_EXECUTABLE(modelfit ${all_srcs})
+TARGET_LINK_LIBRARIES(modelfit ${OpenCV_LIBS})
