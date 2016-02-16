@@ -23,7 +23,7 @@ class ransac
   vector<ptrDataType> _allSamples;
   function<Model(vector<ptrDataType>& )>& _estimator; //todo compare time with cref and no-& here
   function<float(ptrDataType& , Model& )>& _distFunction;
-
+  //todo, add a checkgenerate set of sample functor
  public:
   ransac(float pInlierSet, uint maxIt, float tolerance, function<Model(vector<ptrDataType>& samples)>&
          est, function<float(ptrDataType& sample, Model& model)>& dist,
