@@ -6,8 +6,7 @@
 #include <fstream> //for csv write
 #include <vector>
 #include <functional>
-#include <ctime>
-#include <random>
+#include <limits>
 #include "ransac.h"
 
 
@@ -94,11 +93,18 @@ int main(int argc, char ** argv)
       m.second = data[0]->second - m.first*data[0]->first;
       return m;
     };
-
+  // for degerate sample points
+  function<bool(vector<shared_ptr<dataType>>& data)> testDegeneracy =
+    [](vector<shared_ptr<dataType>>& data)
+    {
+      //for line model we just check first point = second point - for degenrate case
+      float d =  sqrt(pow((data[0]->first-data[1]->first), 2) + pow((data[0]->second - data[1]->second), 2));
+      return  (d < numeric_limits<float>::epsilon());
+    };
   // instantiate and call ransac
   modelType lineModel;
   ransac<dataType, modelType> lineFitUsingRansac(probInlierSet, mxIt, distThresh, modelEst,
-                                                 distF, nbSamples, proportionInliers, dataPoints);
+                                                 distF, testDegeneracy, nbSamples, proportionInliers, dataPoints);
   lineModel = lineFitUsingRansac.fitModelToData();
   //display on terminal
   cout << "line fit using RANSAC -> " << endl;

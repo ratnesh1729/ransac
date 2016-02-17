@@ -15,7 +15,9 @@ template <typename DataType, typename Model>
 class ransac
 {
   typedef shared_ptr<DataType> ptrDataType;
+
  private:
+  const uint _nbTryDegenerate = 10; // try to random sample as many times
   uint _nbIterations;
   uint _maxIterations;
   uint _nbSamples;
@@ -23,12 +25,13 @@ class ransac
   vector<ptrDataType> _allSamples;
   function<Model(vector<ptrDataType>& )>& _estimator; //todo compare time with cref and no-& here
   function<float(ptrDataType& , Model& )>& _distFunction;
-  //todo, add a checkgenerate set of sample functor
+  function<bool(vector<ptrDataType>& )>& _degenerateTest;
+
  public:
   ransac(float pInlierSet, uint maxIt, float tolerance, function<Model(vector<ptrDataType>& samples)>&
-         est, function<float(ptrDataType& sample, Model& model)>& dist,
+         est, function<float(ptrDataType& sample, Model& model)>& dist, function<bool(vector<ptrDataType>&)> degenerate,
          uint nbSamples, float propInliers, vector<DataType>& data) :
-  _estimator(est),  _distFunction(dist),
+  _estimator(est),  _distFunction(dist), _degenerateTest(degenerate),
     _tolerance (tolerance), _nbSamples(nbSamples), _maxIterations(maxIt)
   {
     _allSamples.resize(data.size());
@@ -65,19 +68,29 @@ class ransac
     while (iterations < _maxIterations && iterations < _nbIterations)
     {
       vector<ptrDataType> dataSubset = chooseRandomSubset();
-      Model tentativeModel = _estimator(dataSubset);
-      vector<float> errors = computeModelFitErrors(tentativeModel, _allSamples);
-      uint nbInliers = count_if(errors.begin(), errors.end(), [this](float t)
-      {return t < _tolerance;});
-      if (nbInliers > outputInlierCount)
+      uint nbDeg = 0;
+      uint nbInliers= 0;
+      while (_degenerateTest(dataSubset) && nbDeg < _nbTryDegenerate) //test if we have a degenerate set
       {
-        outputInlierCount = nbInliers;
-        outputModel = tentativeModel;
+        dataSubset = chooseRandomSubset();
+        nbDeg++;
+      }
+      if (!_degenerateTest(dataSubset)) // If we do not end up with degenerate set
+      {
+        Model tentativeModel = _estimator(dataSubset);
+        vector<float> errors = computeModelFitErrors(tentativeModel, _allSamples);
+        nbInliers = count_if(errors.begin(), errors.end(), [this](float t)
+                             {return t < _tolerance;});
+        if (nbInliers > outputInlierCount)
+        {
+          outputInlierCount = nbInliers;
+          outputModel = tentativeModel;
+        }
       }
       iterations++;
     }
     return outputModel;
-    //todo - degenerate model check
+    // todo, also return inliers
   }
 };
 
