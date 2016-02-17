@@ -25,7 +25,7 @@ class ransac
   vector<ptrDataType> _allSamples;
   function<Model(vector<ptrDataType>& )>& _estimator; //todo compare time with cref and no-& here
   function<float(ptrDataType& , Model& )>& _distFunction;
-  function<bool(vector<ptrDataType>& )>& _degenerateTest;
+  function<bool(vector<ptrDataType>& )>& _degenerateTest; //returns true is points are degenerate
 
  public:
   ransac(float pInlierSet, uint maxIt, float tolerance, function<Model(vector<ptrDataType>& samples)>&
