@@ -42,10 +42,10 @@ class ransac
                                           (log(1- pow(propInliers, _nbSamples)))));
   }
 
-  vector<float> computeModelFitErrors(Model& tentativeModel, vector<ptrDataType>& data)
+  vector<float> computeModelFitErrors(Model& tentativeModel)
   {
-    vector<float> errors(data.size(), 0.0);
-    transform(data.begin(), data.end(), errors.begin(), [this, &tentativeModel](ptrDataType ptD)
+    vector<float> errors(_allSamples.size(), 0.0);
+    transform(_allSamples.begin(), _allSamples.end(), errors.begin(), [this, &tentativeModel](ptrDataType ptD)
               {return this->_distFunction(ptD, tentativeModel);});
     return errors;
   }
@@ -78,7 +78,7 @@ class ransac
       if (!_degenerateTest(dataSubset)) // If we do not end up with degenerate set
       {
         Model tentativeModel = _estimator(dataSubset);
-        vector<float> errors = computeModelFitErrors(tentativeModel, _allSamples);
+        vector<float> errors = computeModelFitErrors(tentativeModel);
         nbInliers = count_if(errors.begin(), errors.end(), [this](float t)
                              {return t < _tolerance;});
         if (nbInliers > outputInlierCount)
