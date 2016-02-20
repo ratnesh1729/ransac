@@ -88,6 +88,7 @@ class ransac
         }
       }
       iterations++;
+      //cout << outputModel.first << " " << outputModel.second << endl; todo (overload Iostream for display under a flag)
     }
     return outputModel;
     // todo, also return inliers
